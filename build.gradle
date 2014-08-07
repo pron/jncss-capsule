@@ -1,0 +1,95 @@
+version     = "33.54"
+description = "A Capsule for JavaNCSS"
+ext.targetDir   = 'out'
+
+configurations {
+    capsule
+    runtime
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    capsule 'co.paralleluniverse:capsule:0.6.0-SNAPSHOT'
+    runtime "org.codehaus.javancss:javancss:$version"
+}
+
+tasks.withType(Jar) {
+    destinationDir = file(project.ext.targetDir) 
+    doLast { task -> reallyExecutable(task) }
+}
+
+defaultTasks 'capsule', 'fullCapsule', 'jar'
+
+task capsule(type: Jar) {
+    archiveName = "javancss-capsule.jar"
+    outputs.upToDateWhen { false }
+
+    from { configurations.capsule.collect { zipTree(it) } }
+    
+    manifest { 
+        attributes(
+	    'Main-Class'  :   'Capsule',
+            'Application'   : "org.codehaus.javancss:javancss:$project.version",
+            'Application-Name' : 'javancss',
+            'Application-version': project.version,
+            'Extract-Capsule' : false,
+            'Min-Java-Version' : '1.6.0'
+        )
+    }
+}
+
+task fullCapsule(type: Jar) {
+    archiveName = "javancss-full-capsule.jar"
+    outputs.upToDateWhen { false }
+    
+    from(configurations.capsule.collect { zipTree(it) }) { include 'Capsule.class' }
+    from(configurations.runtime.collect { zipTree(it) }) { exclude '**/*.RSA', '**/*.SF', '**/*.DSA' }
+    
+    manifest { 
+        attributes(
+	    'Main-Class'  : 'Capsule',
+            'Application-Class' : 'javancss.Main',
+            'Application-Name' : 'javancss',
+            'Application-version': project.version,
+            'Extract-Capsule': false,
+            'Min-Java-Version' : '1.6.0'
+        )
+    }
+}
+
+task jar(type: Jar) {
+    archiveName = "javancss.jar"
+    outputs.upToDateWhen { false }
+    
+    from(configurations.runtime.collect { zipTree(it) }) { exclude '**/*.RSA', '**/*.SF', '**/*.DSA' }
+    
+    manifest { 
+        attributes(
+	    'Main-Class'  : 'javancss.Main'
+        )
+    }
+}
+
+task clean << {
+    delete 'build'
+    delete project.ext.targetDir
+}
+
+def reallyExecutable(jar) {
+    ant.concat(destfile: "tmp.jar", binary: true) {
+        zipentry(zipfile: configurations.capsule.singleFile, name: 'capsule/execheader.sh')
+        fileset(dir: jar.destinationDir) {
+            include(name: jar.archiveName)
+        }
+    }
+    copy { 
+        from 'tmp.jar'
+        into jar.destinationDir
+        rename { jar.archiveName }
+    }
+    delete 'tmp.jar'
+}
