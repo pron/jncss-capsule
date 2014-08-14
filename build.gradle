@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    capsule 'co.paralleluniverse:capsule:0.6.0-SNAPSHOT'
+    capsule 'co.paralleluniverse:capsule:0.6.1'
     runtime "org.codehaus.javancss:javancss:$version"
 }
 
