@@ -13,24 +13,24 @@ repositories {
 }
 
 dependencies {
-    capsule 'co.paralleluniverse:capsule:0.6.1'
+    capsule 'co.paralleluniverse:capsule:0.7.0'
     runtime "org.codehaus.javancss:javancss:$version"
 }
 
 tasks.withType(Jar) {
-    destinationDir = file(project.ext.targetDir) 
+    destinationDir = file(project.ext.targetDir)
     doLast { task -> reallyExecutable(task) }
 }
 
-defaultTasks 'capsule', 'fullCapsule', 'jar'
+defaultTasks 'capsule', 'fatCapsule', 'jar'
 
 task capsule(type: Jar) {
     archiveName = "javancss-capsule.jar"
     outputs.upToDateWhen { false }
 
     from { configurations.capsule.collect { zipTree(it) } }
-    
-    manifest { 
+
+    manifest {
         attributes(
 	    'Main-Class'  :   'Capsule',
             'Application'   : "org.codehaus.javancss:javancss:$project.version",
@@ -42,14 +42,14 @@ task capsule(type: Jar) {
     }
 }
 
-task fullCapsule(type: Jar) {
-    archiveName = "javancss-full-capsule.jar"
+task fatCapsule(type: Jar) {
+    archiveName = "javancss-fat-capsule.jar"
     outputs.upToDateWhen { false }
-    
+
     from(configurations.capsule.collect { zipTree(it) }) { include 'Capsule.class' }
     from(configurations.runtime.collect { zipTree(it) }) { exclude '**/*.RSA', '**/*.SF', '**/*.DSA' }
-    
-    manifest { 
+
+    manifest {
         attributes(
 	    'Main-Class'  : 'Capsule',
             'Application-Class' : 'javancss.Main',
@@ -64,10 +64,10 @@ task fullCapsule(type: Jar) {
 task jar(type: Jar) {
     archiveName = "javancss.jar"
     outputs.upToDateWhen { false }
-    
+
     from(configurations.runtime.collect { zipTree(it) }) { exclude '**/*.RSA', '**/*.SF', '**/*.DSA' }
-    
-    manifest { 
+
+    manifest {
         attributes(
 	    'Main-Class'  : 'javancss.Main'
         )
@@ -86,7 +86,7 @@ def reallyExecutable(jar) {
             include(name: jar.archiveName)
         }
     }
-    copy { 
+    copy {
         from 'tmp.jar'
         into jar.destinationDir
         rename { jar.archiveName }
