@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    capsule 'co.paralleluniverse:capsule:0.7.1-SNAPSHOT'
+    capsule 'co.paralleluniverse:capsule:0.8.0'
     runtime "org.codehaus.javancss:javancss:$version"
 }
 
@@ -81,7 +81,7 @@ task clean << {
 
 def reallyExecutable(jar) {
     ant.concat(destfile: "tmp.jar", binary: true) {
-        zipentry(zipfile: configurations.capsule.singleFile, name: 'capsule/execheader.sh')
+        zipentry(zipfile: configurations.capsule.singleFile, name: 'capsule/trampoline-execheader.sh')
         fileset(dir: jar.destinationDir) {
             include(name: jar.archiveName)
         }
